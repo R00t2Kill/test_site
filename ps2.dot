@@ -1,0 +1,48 @@
+digraph EnergyOrchestration {
+    rankdir=TB;
+    fontsize=12;
+    splines=ortho;
+    nodesep=0.5;
+    ranksep=0.7;
+
+    node [shape=box, style="rounded,filled", color=black, fontname="Helvetica"];
+
+    Start [label="Campus Energy Orchestration\n(Software Platform)", fillcolor="#FFD580", style="rounded,filled,bold"];
+
+    subgraph cluster_inputs {
+        label="1. Data Integration Layer";
+        style="rounded,dashed";
+        color=gray;
+
+        Solar [label="Solar Inverter Data\n(kWh)", fillcolor="#FFF5CC"];
+        Wind [label="Wind Turbine Data\n(kWh)", fillcolor="#E0F7FA"];
+        Battery [label="Battery/Storage\nCharge-Discharge", fillcolor="#E1F5E1"];
+        Grid [label="Grid Import/Export\nMeter (kWh)", fillcolor="#F0E1FF"];
+        Weather [label="Weather API\n(Solar, Wind, Temp)", fillcolor="#FFE1E1"];
+    }
+
+    Forecast [label="2. Forecasting & Prediction Engine\n• Demand prediction (ML)\n• Solar/Wind forecast\n• Battery SOC forecast", fillcolor="#D6EAF8"];
+
+    Optimizer [label="3. Optimization & Decision Layer\n• Optimal charge/discharge\n• Load shifting\n• Grid import/export\n• Reliability for critical loads", fillcolor="#D5F5E3"];
+
+    Actions [label="4. Action & Control Output\n• Recommendations (charge, discharge, shift)\n• Alerts (battery low, demand spike)", fillcolor="#FADBD8"];
+
+    Dashboard [label="5. User Dashboard Layer\n• Web/Mobile UI\n• Simple traffic-light indicators\n• Adjustable alerts\n• Exportable reports", fillcolor="#FCF3CF"];
+
+    # Edges
+    Start -> Solar;
+    Start -> Wind;
+    Start -> Battery;
+    Start -> Grid;
+    Start -> Weather;
+
+    Solar -> Forecast;
+    Wind -> Forecast;
+    Battery -> Forecast;
+    Grid -> Forecast;
+    Weather -> Forecast;
+
+    Forecast -> Optimizer;
+    Optimizer -> Actions;
+    Actions -> Dashboard;
+}

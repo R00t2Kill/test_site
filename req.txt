@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pandas
+pydantic
+python-multipart
+requests
+aiofiles
+prophet>=1.1.1 ; extra == "use_prophet"
+# Note: prophet can be heavy to install. The app will work without it (it falls back to moving average).
