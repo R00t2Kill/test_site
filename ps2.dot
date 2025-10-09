@@ -1,48 +1,140 @@
-digraph EnergyOrchestration {
+digraph PS2 {
+
+    // =====================================================
+    // General Graph Settings
+    // =====================================================
     rankdir=TB;
-    fontsize=12;
-    splines=ortho;
-    nodesep=0.5;
-    ranksep=0.7;
+    labelloc="t";
+    label="Campus Energy Management System Architecture";
+    fontsize=14;
+    fontname="Helvetica";
 
-    node [shape=box, style="rounded,filled", color=black, fontname="Helvetica"];
+    node [shape=box style=filled fontname="Helvetica" fontsize=10];
+    edge [fontname="Helvetica" fontsize=9];
 
-    Start [label="Campus Energy Orchestration\n(Software Platform)", fillcolor="#FFD580", style="rounded,filled,bold"];
+    // =====================================================
+    // PHYSICAL INFRASTRUCTURE
+    // =====================================================
+    subgraph cluster_physical {
+        label = "🏢 Physical Infrastructure";
+        color = "#4CAF50";
+        style = "rounded";
 
-    subgraph cluster_inputs {
-        label="1. Data Integration Layer";
-        style="rounded,dashed";
-        color=gray;
-
-        Solar [label="Solar Inverter Data\n(kWh)", fillcolor="#FFF5CC"];
-        Wind [label="Wind Turbine Data\n(kWh)", fillcolor="#E0F7FA"];
-        Battery [label="Battery/Storage\nCharge-Discharge", fillcolor="#E1F5E1"];
-        Grid [label="Grid Import/Export\nMeter (kWh)", fillcolor="#F0E1FF"];
-        Weather [label="Weather API\n(Solar, Wind, Temp)", fillcolor="#FFE1E1"];
+        Solar   [label="☀️ Solar Panels\n(250 kW) + IoT Sensors", fillcolor="#e1f5e1"];
+        Battery [label="🔋 Battery Storage\n(200 kWh) + BMS", fillcolor="#e1f5e1"];
+        Grid    [label="⚡ Grid Connection\n+ Smart Meter", fillcolor="#e1f5e1"];
+        Loads   [label="🏫 Campus Loads\nLabs, Hostels, HVAC\n+ Smart Meters", fillcolor="#e1f5e1"];
     }
 
-    Forecast [label="2. Forecasting & Prediction Engine\n• Demand prediction (ML)\n• Solar/Wind forecast\n• Battery SOC forecast", fillcolor="#D6EAF8"];
+    // =====================================================
+    // EDGE LAYER
+    // =====================================================
+    subgraph cluster_edge {
+        label = "📡 Edge Layer - Data Acquisition";
+        color = "#2196F3";
+        style = "rounded";
 
-    Optimizer [label="3. Optimization & Decision Layer\n• Optimal charge/discharge\n• Load shifting\n• Grid import/export\n• Reliability for critical loads", fillcolor="#D5F5E3"];
+        SolarInv    [label="Solar Inverter\nRS485 / Modbus", fillcolor="#e3f2fd"];
+        BatteryBMS  [label="Battery BMS\nCAN Bus / Modbus", fillcolor="#e3f2fd"];
+        GridMeter   [label="Grid Smart Meter\nModbus RTU", fillcolor="#e3f2fd"];
+        LoadMeters  [label="Load Meters\nModbus TCP", fillcolor="#e3f2fd"];
+    }
 
-    Actions [label="4. Action & Control Output\n• Recommendations (charge, discharge, shift)\n• Alerts (battery low, demand spike)", fillcolor="#FADBD8"];
+    // =====================================================
+    // IOT GATEWAY
+    // =====================================================
+    subgraph cluster_gateway {
+        label = "🌐 IoT Gateway";
+        color = "#1976D2";
+        style = "rounded";
 
-    Dashboard [label="5. User Dashboard Layer\n• Web/Mobile UI\n• Simple traffic-light indicators\n• Adjustable alerts\n• Exportable reports", fillcolor="#FCF3CF"];
+        ModbusGW   [label="Modbus Gateway\nRaspberry Pi 4\nTCP/IP", fillcolor="#e3f2fd"];
+        DataBuffer [label="Local Data Buffer\nRedis Cache", fillcolor="#e3f2fd"];
+    }
 
-    # Edges
-    Start -> Solar;
-    Start -> Wind;
-    Start -> Battery;
-    Start -> Grid;
-    Start -> Weather;
+    // =====================================================
+    // BACKEND SERVER
+    // =====================================================
+    subgraph cluster_backend {
+        label = "💻 Backend Server - FastAPI";
+        color = "#FF9800";
+        style = "rounded";
 
-    Solar -> Forecast;
-    Wind -> Forecast;
-    Battery -> Forecast;
-    Grid -> Forecast;
-    Weather -> Forecast;
+        API        [label="REST API Endpoints\nFastAPI", fillcolor="#fff3e0"];
+        DB         [label="SQLite Database\nTime-series Storage", fillcolor="#fff3e0"];
+        ML         [label="ML Engine\nScikit-learn\nRandom Forest", fillcolor="#fff3e0"];
+        Optimizer  [label="Optimization Engine\nBattery Scheduling\nLoad Management", fillcolor="#fff3e0"];
+        SimState   [label="Simulation State\nIn-Memory", fillcolor="#fff3e0"];
+    }
 
-    Forecast -> Optimizer;
-    Optimizer -> Actions;
-    Actions -> Dashboard;
+    // =====================================================
+    // FRONTEND DASHBOARD
+    // =====================================================
+    subgraph cluster_frontend {
+        label = "🖥️ Frontend Dashboard";
+        color = "#9C27B0";
+        style = "rounded";
+
+        WebUI     [label="Web Interface\nHTML5 + JavaScript", fillcolor="#f3e5f5"];
+        RealTime  [label="Real-time Monitoring\n10-sec polling", fillcolor="#f3e5f5"];
+        Controls  [label="Manual Controls\nBattery, Load", fillcolor="#f3e5f5"];
+    }
+
+    // =====================================================
+    // EXTERNAL SERVICES
+    // =====================================================
+    subgraph cluster_external {
+        label = "☁️ External Services";
+        color = "#E91E63";
+        style = "rounded";
+
+        Weather [label="Weather API\nSolar Forecasting", fillcolor="#fce4ec"];
+        Alerts  [label="Alert System\nEmail / SMS", fillcolor="#fce4ec"];
+    }
+
+    // =====================================================
+    // CONNECTIONS
+    // =====================================================
+
+    // Physical → Edge
+    Solar   -> SolarInv   [label="DC Power + Data"];
+    Battery -> BatteryBMS [label="DC Power + Data"];
+    Grid    -> GridMeter  [label="AC Power + Data"];
+    Loads   -> LoadMeters [label="AC Power + Data"];
+
+    // Edge → Gateway
+    SolarInv   -> ModbusGW [label="Modbus RTU"];
+    BatteryBMS -> ModbusGW [label="CAN Bus"];
+    GridMeter  -> ModbusGW [label="Modbus TCP"];
+    LoadMeters -> ModbusGW [label="Modbus TCP"];
+
+    // Gateway processing
+    ModbusGW   -> DataBuffer [label="Parse & Format\nJSON packets"];
+    DataBuffer -> API        [label="HTTP POST\nEvery 10 sec"];
+
+    // Backend processing
+    API       -> DB         [label="Store"];
+    DB        -> ML         [label="Historical Data"];
+    ML        -> Optimizer  [label="Predictions"];
+    API       -> SimState   [label="Current State"];
+    SimState  -> Optimizer  [label="State Updates"];
+    Optimizer -> API        [label="Recommendations"];
+
+    // Weather Integration
+    Weather -> ML [label="Hourly Forecast\nJSON API"];
+
+    // Frontend Interaction
+    WebUI    -> API [label="GET /api/status\nPOST /api/control"];
+    API      -> WebUI [label="JSON Response\nReal-time Data"];
+    RealTime -> WebUI [style=dashed label="Display"];
+    Controls -> WebUI [style=dashed label="User Actions"];
+
+    // Control Loop
+    Optimizer  -> ModbusGW   [label="Control Commands\nMQTT/Modbus"];
+    ModbusGW   -> BatteryBMS [label="Execute Commands"];
+    ModbusGW   -> LoadMeters [label="Load Shedding"];
+
+    // Alerts
+    API    -> Alerts [label="Critical Events"];
+    Alerts -> WebUI  [label="Notifications"];
 }
